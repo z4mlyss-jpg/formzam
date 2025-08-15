@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Marketplace</title>
+<style>
+  :root{
+    --bg1:#0f2027; --bg2:#203a43; --bg3:#2c5364;
+    --card: rgba(0,0,0,.88);
+    --panel: rgba(0,0,0,.6);
+    --text:#eaf7f5; --muted:#a8b3b0;
+    --accent:#00ffcc; --accent2:#00bfa5;
+    --ring:0 0 0 3px rgba(0,255,204,.25);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    min-height:100svh; display:flex; flex-direction:column;
+  }
+  a{color:inherit; text-decoration:none}
+  .container{width:min(1200px,100%); margin-inline:auto; padding:16px}
+  .glass{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; box-shadow:0 30px 80px rgba(0,0,0,.55)}
+  header.nav{
+    position:sticky; top:0; z-index:40; backdrop-filter: blur(6px);
+    background:linear-gradient(135deg,rgba(15,32,39,.75),rgba(32,58,67,.6));
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .nav-inner{display:flex; align-items:center; gap:12px; padding:12px 16px}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.08em}
+  .brand .logo{width:34px; height:34px; border-radius:8px; object-fit:cover; box-shadow:0 6px 16px rgba(0,255,204,.25)}
+  .brand span{color:var(--accent)}
+  .search{flex:1; position:relative}
+  .search input{
+    width:100%; background:#111; color:var(--text);
+    border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:12px 14px 12px 40px;
+    outline:none; transition:border-color .2s, box-shadow .2s;
+  }
+  .search input:focus{border-color:var(--accent); box-shadow:var(--ring)}
+  .search .icon{position:absolute; left:12px; top:50%; translate:0 -50%; opacity:.7}
+  .cart-btn{
+    position:relative; background:linear-gradient(90deg,var(--accent),var(--accent2));
+    border:none; color:#00110d; font-weight:800; border-radius:12px; padding:10px 14px; cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,255,204,.25);
+  }
+  .cart-btn:hover{filter:brightness(1.08)}
+  .badge{
+    position:absolute; top:-6px; right:-6px; background:#ff5c7a; color:#fff;
+    border-radius:999px; padding:2px 7px; font-size:12px; font-weight:800;
+    box-shadow:0 6px 14px rgba(255,92,122,.35);
+  }
+
+  .layout{display:grid; grid-template-columns:1fr; gap:16px; padding-block:16px}
+  @media(min-width:980px){ .layout{ grid-template-columns:260px 1fr; } }
+
+  .filters{padding:16px}
+  .filters h3{margin:0 0 6px; color:var(--accent); letter-spacing:.08em}
+  .chip{
+    display:inline-flex; align-items:center; gap:8px; margin:6px 6px 0 0;
+    padding:8px 12px; border-radius:999px; background:#111; border:1px solid rgba(255,255,255,.12);
+    cursor:pointer; user-select:none; font-size:14px;
+  }
+  .chip input{accent-color:var(--accent)}
+  .controls{display:flex; gap:10px; flex-wrap:wrap; padding:12px 16px}
+  .select, .sort{
+    background:#111; color:var(--text); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:10px 12px;
+  }
+
+  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; padding:16px}
+  @media(min-width:700px){ .grid{ grid-template-columns:repeat(3,1fr);} }
+  @media(min-width:1100px){ .grid{ grid-template-columns:repeat(4,1fr);} }
+
+  .card{overflow:hidden; display:flex; flex-direction:column}
+  .thumb{aspect-ratio: 4/3; background:#0b0b0b; position:relative}
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+  .price-tag{
+    position:absolute; left:10px; bottom:10px; background:rgba(0,0,0,.7);
+    padding:6px 10px; border-radius:10px; font-weight:800; color:var(--accent);
+    border:1px solid rgba(255,255,255,.12)
+  }
+  .body{padding:12px 14px 14px; display:flex; flex-direction:column; gap:6px}
+  .title{font-weight:800}
+  .muted{color:var(--muted); font-size:13px}
+  .rate{font-size:13px}
+  .add{
+    margin-top:10px; border:none; border-radius:10px; padding:10px 12px; font-weight:800; cursor:pointer;
+    background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#00110d;
+    box-shadow:0 12px 30px rgba(0,255,204,.25);
+  }
+  .add:hover{filter:brightness(1.08)}
+
+  .drawer{
+    position:fixed; top:0; right:0; height:100%; width:min(420px,100%); transform:translateX(100%);
+    background:var(--panel); backdrop-filter: blur(8px); border-left:1px solid rgba(255,255,255,.08);
+    transition: transform .25s ease; z-index:60; display:flex; flex-direction:column;
+  }
+  .drawer.open{ transform: translateX(0); }
+  .drawer header{
+    display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .x{background:#111; color:var(--text); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:8px 10px; cursor:pointer}
+  .cart-list{flex:1; overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:10px}
+  .item{display:grid; grid-template-columns:64px 1fr auto; gap:10px; align-items:center; background:#0e0e0e; border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:8px}
+  .item img{width:64px; height:64px; object-fit:cover; border-radius:8px}
+  .qty{display:flex; align-items:center; gap:6px}
+  .qty button{width:28px; height:28px; border-radius:8px; border:1px solid rgba(255,255,255,.12); background:#111; color:var(--text); cursor:pointer}
+  .trash{background:#ff5c7a; border:none; color:#fff; border-radius:8px; padding:6px 8px; cursor:pointer}
+  .drawer footer{border-top:1px solid rgba(255,255,255,.08); padding:12px 16px}
+  .row{display:flex; justify-content:space-between; margin:6px 0; color:var(--muted)}
+  .total{font-weight:900; color:var(--accent)}
+  .checkout{
+    width:100%; margin-top:10px; border:none; border-radius:12px; padding:12px 16px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#00110d; font-weight:900; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="https://linktr.ee/zamzt">
+      <img class="logo" src="Shinobu's_relaxed_demeanor.png" alt="logo">
+      <span>ZAM<span style="opacity:.30">ZTORE</span></span>
+    </a>
+    <div class="search">
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-6-6zM9.5 14C7 14 5 12 5 9.5S7 5 9.5 5 14 7 14 9.5 12 14 9.5 14z"/></svg>
+      <input id="q" type="search" placeholder="Cari produk...">
+    </div>
+    <button class="cart-btn" id="openCart">Keranjang <span class="badge" id="cartCount">0</span></button>
+  </div>
+</header>
+
+<main class="container layout">
+  <aside class="glass filters">
+    <h3>Filter Kategori</h3>
+    <div id="cats"></div>
+  </aside>
+
+  <section class="glass">
+    <div class="controls">
+      <select id="sort" class="sort" aria-label="Urutkan">
+        <option value="pop">Paling Populer</option>
+        <option value="price-asc">Harga Termurah</option>
+        <option value="price-desc">Harga Termahal</option>
+        <option value="name-asc">Nama A → Z</option>
+      </select>
+      <span class="muted" id="count"></span>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </section>
+</main>
+
+<aside class="drawer" id="drawer" aria-label="Keranjang">
+  <header>
+    <strong>Keranjang</strong>
+    <button class="x" id="closeCart">Tutup</button>
+  </header>
+
+  <div class="cart-list" id="cartList"></div>
+
+  <footer>
+    <div class="row"><span>Subtotal</span><span id="sub">Rp0</span></div>
+    <div class="row"><span>Pajak (1%)</span><span id="tax">Rp0</span></div>
+    <div class="row total"><span>Total</span><span id="tot">Rp0</span></div>
+    <button class="checkout" id="checkout">Checkout</button>
+  </footer>
+</aside>
+
+<script>
+  const PRODUCTS = [
+    {id:1,  name:"Headset Neon Pro",   price:399000,  cat:"Audio",  rating:4.6, img:"prod1.jpeg"},
+    {id:2,  name:"Mechanical Keyboard",price:799000,  cat:"Periferal",rating:4.8, img:"prod2.jpeg"},
+    {id:3,  name:"Gaming Mouse RGB",   price:249000,  cat:"Periferal",rating:4.5, img:"prod3.jpeg"},
+    {id:4,  name:"Smartwatch S",       price:899000,  cat:"Gadget", rating:4.3, img:"prod4.jpeg"},
+    {id:5,  name:"Bluetooth Speaker",  price:329000,  cat:"Audio",  rating:4.2, img:"prod5.jpeg"},
+    {id:6,  name:"USB-C Hub 6in1",     price:289000,  cat:"Aksesori", rating:4.1, img:"prod6.jpeg"},
+    {id:7,  name:"Webcam 1080p",       price:459000,  cat:"Aksesori", rating:4.4, img:"prod7.jpeg"},
+    {id:8,  name:"Portable SSD 1TB",   price:1399000, cat:"Storage",  rating:4.9, img:"prod8.jpeg"},
+    {id:9,  name:"Monitor 27” 144Hz",  price:2899000, cat:"Monitor",  rating:4.7, img:"prod9.jpeg"},
+    {id:10, name:"Earbuds ANC",        price:599000,  cat:"Audio",  rating:4.4, img:"prod10.jpeg"},
+    {id:11, name:"Action Cam 4K",      price:1999000, cat:"Gadget", rating:4.5, img:"prod11.jpeg"},
+    {id:12, name:"Charging Stand",     price:179000,  cat:"Aksesori", rating:4.0, img:"prod12.jpeg"},
+  ];
+
+  const rupiah = n => "Rp" + (n||0).toLocaleString("id-ID");
+  const $ = sel => document.querySelector(sel);
+
+  const state = {
+    q:"", cats:new Set(), sort:"pop",
+    cart: JSON.parse(localStorage.getItem("zam_cart")||"[]")
+  };
+
+  const catSet = Array.from(new Set(PRODUCTS.map(p=>p.cat))).sort();
+  const catsEl = $("#cats");
+  catsEl.innerHTML = catSet.map(c=>`
+    <label class="chip">
+      <input type="checkbox" value="${c}" onchange="toggleCat(this)"> ${c}
+    </label>
+  `).join("");
+
+  window.toggleCat = (cb)=>{
+    cb.checked ? state.cats.add(cb.value) : state.cats.delete(cb.value);
+    render();
+  };
+
+  $("#q").addEventListener("input", e=>{ state.q = e.target.value.toLowerCase(); render(); });
+  $("#sort").addEventListener("change", e=>{ state.sort = e.target.value; render(); });
+
+  function filtered(){
+    let list = PRODUCTS.filter(p=>{
+      const okQ = !state.q || p.name.toLowerCase().includes(state.q);
+      const okC = state.cats.size===0 || state.cats.has(p.cat);
+      return okQ && okC;
+    });
+    switch(state.sort){
+      case "price-asc":  list.sort((a,b)=>a.price-b.price); break;
+      case "price-desc": list.sort((a,b)=>b.price-a.price); break;
+      case "name-asc":   list.sort((a,b)=>a.name.localeCompare(b.name)); break;
+      default: list.sort((a,b)=>b.rating-a.rating); break;
+    }
+    return list;
+  }
+
+  function render(){
+    const list = filtered();
+    $("#count").textContent = `${list.length} produk`;
+    $("#grid").innerHTML = list.map(p=>`
+      <article class="card glass">
+        <div class="thumb">
+          <img src="${p.img}" alt="${p.name}">
+          <span class="price-tag">${rupiah(p.price)}</span>
+        </div>
+        <div class="body">
+          <div class="title">${p.name}</div>
+          <div class="muted">${p.cat} • <span class="rate">★ ${p.rating.toFixed(1)}</span></div>
+          <button class="add" onclick='addToCart(${p.id})'>Tambah ke Keranjang</button>
+        </div>
+      </article>
+    `).join("");
+    updateCount();
+  }
+
+  const openCart = ()=> $("#drawer").classList.add("open");
+  const closeCart = ()=> $("#drawer").classList.remove("open");
+  $("#openCart").onclick = openCart; $("#closeCart").onclick = closeCart;
+
+  function addToCart(id){
+    const found = state.cart.find(i=>i.id===id);
+    if(found) found.qty += 1; else state.cart.push({id, qty:1});
+    persist(); updateCount(); drawCart(); openCart();
+  }
+  function changeQty(id,delta){
+    const it = state.cart.find(i=>i.id===id);
+    if(!it) return;
+    it.qty += delta;
+    if(it.qty<=0) state.cart = state.cart.filter(i=>i.id!==id);
+    persist(); drawCart(); updateCount();
+  }
+  function removeItem(id){
+    state.cart = state.cart.filter(i=>i.id!==id);
+    persist(); drawCart(); updateCount();
+  }
+  function persist(){ localStorage.setItem("zam_cart", JSON.stringify(state.cart)); }
+  function updateCount(){ $("#cartCount").textContent = state.cart.reduce((a,b)=>a+b.qty,0); }
+
+  function drawCart(){
+    const rows = state.cart.map(ci=>{
+      const p = PRODUCTS.find(x=>x.id===ci.id);
+      const line = p.price * ci.qty;
+      return `
+        <div class="item">
+          <img src="${p.img}" alt="${p.name}">
+          <div>
+            <div style="font-weight:800">${p.name}</div>
+            <div class="muted">${rupiah(p.price)} • ${p.cat}</div>
+            <div class="qty">
+              <button onclick="changeQty(${p.id},-1)">-</button>
+              <span>${ci.qty}</span>
+              <button onclick="changeQty(${p.id},1)">+</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div>${rupiah(line)}</div>
+            <button class="trash" onclick="removeItem(${p.id})">Hapus</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    $("#cartList").innerHTML = rows || `<div class="muted" style="text-align:center;padding:12px">Keranjang kosong.</div>`;
+
+    const sub = state.cart.reduce((sum,ci)=> sum + PRODUCTS.find(p=>p.id===ci.id).price * ci.qty, 0);
+    const tax = Math.round(sub * .10);
+    const tot = sub + tax;
+    $("#sub").textContent = rupiah(sub);
+    $("#tax").textContent = rupiah(tax);
+    $("#tot").textContent = rupiah(tot);
+  }
+
+  $("#checkout").onclick = ()=>{
+    if(!state.cart.length) return alert("Keranjang masih kosong.");
+    alert("Checkout simulasi berhasil! (integrasikan ke payment gateway di tahap berikutnya)");
+    state.cart = []; persist(); drawCart(); updateCount(); closeCart();
+  };
+
+  render(); drawCart();
+</script>
+</body>
+</html>
